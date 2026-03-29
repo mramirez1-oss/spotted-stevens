@@ -1,7 +1,7 @@
 import type { FoundItem } from "@/types/found-item";
 
 type FoundItemCardProps = {
-  item: FoundItem;
+  item?: FoundItem | null;
 };
 
 /** Public Supabase URLs: native img */
@@ -9,11 +9,11 @@ export function FoundItemCard({ item }: FoundItemCardProps) {
   return (
     <article className="flex flex-col overflow-hidden rounded-2xl border border-spot-sky/50 bg-white shadow-md shadow-spot-navy/5 transition hover:border-spot-blue/30 hover:shadow-lg">
       <div className="relative aspect-[4/3] overflow-hidden bg-spot-sky/25">
-        {item.imageUrl ? (
+        {item?.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.imageUrl}
-            alt={item.description}
+            alt={item?.description ?? "Found item"}
             className="absolute inset-0 h-full w-full object-cover"
             loading="lazy"
             decoding="async"
@@ -46,19 +46,21 @@ export function FoundItemCard({ item }: FoundItemCardProps) {
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h2 className="text-lg font-semibold leading-snug text-spot-navy">
-            {item.description}
+            {item?.description}
           </h2>
           <span className="shrink-0 rounded-full bg-spot-sky/40 px-2.5 py-0.5 text-xs font-medium text-spot-navy ring-1 ring-spot-blue/20">
-            {item.category}
+            {item?.category}
           </span>
         </div>
         <p className="mt-auto text-sm text-spot-blue">
           <span className="font-medium text-spot-navy">Location found: </span>
-          {item.building}
+          {item?.building}
         </p>
         <p className="text-xs text-spot-blue/80">
           Posted by{" "}
-          <span className="font-medium text-spot-navy">{item.postedByUsername}</span>
+          <span className="font-medium text-spot-navy">
+            {item?.postedByUsername}
+          </span>
         </p>
       </div>
     </article>

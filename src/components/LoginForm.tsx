@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { resolveEmailFromUsername } from "@/lib/auth/resolve-email-from-username";
 import { validateUsername } from "@/lib/auth/validators";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { ConfigurationErrorBanner } from "@/components/ConfigurationErrorBanner";
+import {
+  createBrowserSupabaseClient,
+  isBrowserSupabaseConfigured,
+} from "@/lib/supabase/browser";
 
 const field =
   "w-full rounded-xl border border-spot-sky/60 bg-white px-3 py-2.5 text-sm text-spot-navy placeholder:text-spot-blue/45 focus:border-spot-blue focus:outline-none focus:ring-2 focus:ring-spot-blue/20";
@@ -14,6 +18,7 @@ export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const configOk = isBrowserSupabaseConfigured();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +39,11 @@ export function LoginForm() {
 
     setPending(true);
     const supabase = createBrowserSupabaseClient();
+    if (!supabase) {
+      setPending(false);
+      setError("Configuration Error");
+      return;
+    }
 
     const { email, error: rpcError } = await resolveEmailFromUsername(
       supabase,
@@ -62,6 +72,11 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      {!configOk && (
+        <div className="mb-1">
+          <ConfigurationErrorBanner />
+        </div>
+      )}
       <div>
         <label
           htmlFor="li-user"
@@ -80,7 +95,7 @@ export function LoginForm() {
           pattern="[a-zA-Z0-9_]{2,32}"
           title="Letters, numbers, underscores"
           placeholder="your_username"
-          disabled={pending}
+          disabled={pending || !configOk}
           className={field}
         />
       </div>
@@ -97,7 +112,7 @@ export function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
-          disabled={pending}
+          disabled={pending || !configOk}
           className={field}
         />
       </div>
@@ -108,7 +123,7 @@ export function LoginForm() {
       )}
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !configOk}
         className="rounded-xl bg-spot-coral px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-spot-coral/25 transition hover:bg-spot-coral-hover disabled:opacity-60"
       >
         {pending ? "Signing in…" : "Log in"}

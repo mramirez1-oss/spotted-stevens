@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut } from "@/app/actions/auth";
+import { ConfigurationErrorBanner } from "@/components/ConfigurationErrorBanner";
 import { PostLostAlert } from "@/components/PostLostAlert";
 import { ReportFoundItem } from "@/components/ReportFoundItem";
 import { profileHandle } from "@/lib/display-username";
@@ -22,16 +23,24 @@ function usernameForHeader(user: User, profileUsername: string | null | undefine
 export function HeaderUserSection() {
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
+  const [configError, setConfigError] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createBrowserSupabaseClient();
+    if (!supabase) {
+      setConfigError(true);
+      setReady(true);
+      return;
+    }
+
+    const client = supabase;
 
     async function load() {
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await client.auth.getUser();
       if (!user) {
         setAuthenticated(false);
         setUsername(null);
@@ -41,22 +50,20 @@ export function HeaderUserSection() {
 
       setAuthenticated(true);
 
-      let row = await supabase
+      let { data: row } = await client
         .from("profiles")
         .select("username")
         .eq("id", user.id)
-        .maybeSingle()
-        .then((r) => r.data);
+        .maybeSingle();
 
       if (!row?.username) {
         for (let i = 0; i < 3; i++) {
-          await new Promise((r) => setTimeout(r, 350));
-          row = await supabase
+          await new Promise((resolve) => setTimeout(resolve, 350));
+          ({ data: row } = await client
             .from("profiles")
             .select("username")
             .eq("id", user.id)
-            .maybeSingle()
-            .then((r) => r.data);
+            .maybeSingle());
           if (row?.username) break;
         }
       }
@@ -69,7 +76,7 @@ export function HeaderUserSection() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
+    } = client.auth.onAuthStateChange(() => {
       load();
     });
 
@@ -86,6 +93,10 @@ export function HeaderUserSection() {
         <span className="text-xs text-spot-blue/50" aria-hidden>
           …
         </span>
+      ) : configError ? (
+        <div className="max-w-[min(100%,20rem)]">
+          <ConfigurationErrorBanner />
+        </div>
       ) : authenticated ? (
         <div className="flex flex-wrap items-center justify-end gap-3">
           {username ? (

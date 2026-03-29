@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
+import { ConfigurationErrorBanner } from "@/components/ConfigurationErrorBanner";
+import {
+  createBrowserSupabaseClient,
+  isBrowserSupabaseConfigured,
+} from "@/lib/supabase/browser";
 import {
   isStevensEmail,
   validateSimplePassword,
@@ -17,6 +21,7 @@ export function SignUpForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const configOk = isBrowserSupabaseConfigured();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,6 +48,11 @@ export function SignUpForm() {
 
     setPending(true);
     const supabase = createBrowserSupabaseClient();
+    if (!supabase) {
+      setPending(false);
+      setError("Configuration Error");
+      return;
+    }
 
     const { data: taken } = await supabase
       .from("profiles")
@@ -86,6 +96,11 @@ export function SignUpForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      {!configOk && (
+        <div className="mb-1">
+          <ConfigurationErrorBanner />
+        </div>
+      )}
       <div>
         <label
           htmlFor="su-email"
@@ -100,7 +115,7 @@ export function SignUpForm() {
           required
           autoComplete="email"
           placeholder="you@stevens.edu"
-          disabled={pending}
+          disabled={pending || !configOk}
           className={field}
         />
       </div>
@@ -122,7 +137,7 @@ export function SignUpForm() {
           pattern="[a-zA-Z0-9_]{2,32}"
           title="Letters, numbers, underscores only"
           placeholder="campus_handle"
-          disabled={pending}
+          disabled={pending || !configOk}
           className={field}
         />
         <p className="mt-1 text-xs text-spot-blue/80">
@@ -144,7 +159,7 @@ export function SignUpForm() {
           required
           autoComplete="new-password"
           minLength={8}
-          disabled={pending}
+          disabled={pending || !configOk}
           className={field}
         />
         <p className="mt-1 text-xs text-spot-blue/80">
@@ -158,7 +173,7 @@ export function SignUpForm() {
       )}
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !configOk}
         className="rounded-xl bg-spot-coral px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-spot-coral/25 transition hover:bg-spot-coral-hover disabled:opacity-60"
       >
         {pending ? "Creating account…" : "Create account"}

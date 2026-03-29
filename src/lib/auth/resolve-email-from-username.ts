@@ -5,9 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Postgres parameter must match: `username_input` → JSON key below.
  */
 export async function resolveEmailFromUsername(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient | null,
   rawUsername: string,
 ): Promise<{ email: string | null; error: string | null }> {
+  if (!supabase) {
+    return { email: null, error: "Configuration Error" };
+  }
   const username = rawUsername.trim();
   if (!username) {
     return { email: null, error: "Enter your username." };
