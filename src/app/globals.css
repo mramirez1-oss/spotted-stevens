@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Spotted palette: cream base, navy text, blue + sky accents, coral CTAs */
+:root {
+  --spot-cream: #fffcf2;
+  --spot-navy: #1d3557;
+  --spot-blue: #457b9d;
+  --spot-sky: #a8dadc;
+  --spot-coral: #e63946;
+  --spot-coral-hover: #d62839;
+  --background: var(--spot-cream);
+  --foreground: var(--spot-navy);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-spot-cream: #fffcf2;
+  --color-spot-navy: #1d3557;
+  --color-spot-blue: #457b9d;
+  --color-spot-sky: #a8dadc;
+  --color-spot-coral: #e63946;
+  --color-spot-coral-hover: #d62839;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--spot-cream);
+  color: var(--spot-navy);
+}
